@@ -1,35 +1,28 @@
 #!/usr/bin/env python3
-"""progress_bar - Pipe-friendly progress bar for CLI tasks."""
-import sys, time, os
-
-def bar(current, total, width=40, label=''):
-    pct = current / total if total else 0
-    filled = int(width * pct)
-    b = '█' * filled + '░' * (width - filled)
-    sys.stderr.write(f'\r{label}[{b}] {pct*100:5.1f}% ({current}/{total})')
-    if current >= total: sys.stderr.write('\n')
-    sys.stderr.flush()
-
-def pipe_mode(total=None):
-    count = 0
-    for line in sys.stdin:
-        count += 1
-        sys.stdout.write(line)
-        if total: bar(count, total)
-        else: sys.stderr.write(f'\r  Processed: {count} lines'); sys.stderr.flush()
-    if not total: sys.stderr.write('\n')
-
-def demo():
-    for i in range(101):
-        bar(i, 100, label='Demo: ')
-        time.sleep(0.03)
-
+"""Terminal progress bar library."""
+import sys,time,shutil
+class ProgressBar:
+    def __init__(self,total,width=None,prefix="",suffix="",fill="█",empty="░"):
+        self.total=total;self.width=width or min(40,shutil.get_terminal_size().columns-30)
+        self.prefix=prefix;self.suffix=suffix;self.fill=fill;self.empty=empty
+        self.current=0;self.start=time.time()
+    def update(self,n=1):
+        self.current=min(self.current+n,self.total)
+        pct=self.current/self.total;filled=int(self.width*pct)
+        bar=self.fill*filled+self.empty*(self.width-filled)
+        elapsed=time.time()-self.start
+        rate=self.current/elapsed if elapsed>0 else 0
+        eta=(self.total-self.current)/rate if rate>0 else 0
+        sys.stderr.write(f"\r{self.prefix} |{bar}| {pct:.0%} [{self.current}/{self.total}] {rate:.0f}/s ETA:{eta:.0f}s {self.suffix}")
+        sys.stderr.flush()
+        if self.current>=self.total: sys.stderr.write("\n")
+    def __enter__(self): return self
+    def __exit__(self,*a): pass
 def main():
-    args = sys.argv[1:]
-    if '-h' in args or '--help' in args:
-        print("Usage:\n  cat file | progress_bar.py [-n TOTAL]\n  progress_bar.py --demo"); return
-    if '--demo' in args: demo(); return
-    total = int(args[args.index('-n')+1]) if '-n' in args else None
-    pipe_mode(total)
-
-if __name__ == '__main__': main()
+    print("Downloading files...")
+    with ProgressBar(100,prefix="Progress") as pb:
+        for i in range(100): time.sleep(0.02);pb.update()
+    print("\nProcessing items...")
+    with ProgressBar(50,width=30,fill="▓",empty="░") as pb:
+        for i in range(50): time.sleep(0.03);pb.update()
+if __name__=="__main__": main()
