@@ -1,5 +1,13 @@
-# progress-bar
-Terminal progress bar. Zero dependencies.
+# progress_bar
+
+Progress bar library — terminal progress indicators
+
+## Usage
+
 ```bash
-python3 progress_bar.py
+python3 progress_bar.py --help
 ```
+
+## License
+
+MIT
