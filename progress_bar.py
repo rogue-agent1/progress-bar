@@ -1,18 +1,24 @@
 #!/usr/bin/env python3
-"""Progress bar — terminal progress display with ETA."""
-import sys, time
-class Progress:
-    def __init__(self, total, width=40, label=""):
-        self.total=total; self.width=width; self.label=label; self.start=time.time(); self.current=0
-    def update(self, n=1):
-        self.current+=n; pct=self.current/self.total; filled=int(pct*self.width)
-        bar="█"*filled+"░"*(self.width-filled)
-        elapsed=time.time()-self.start; eta=(elapsed/self.current*(self.total-self.current)) if self.current else 0
-        print(f"\r  {self.label}[{bar}] {pct*100:.0f}% ({self.current}/{self.total}) ETA:{eta:.0f}s",end="",flush=True)
-        if self.current>=self.total: print()
-def cli():
-    n=int(sys.argv[1]) if len(sys.argv)>1 else 50
-    p=Progress(n, label="Working ")
-    for _ in range(n): time.sleep(0.05); p.update()
-    print("  Done!")
-if __name__=="__main__": cli()
+"""progress_bar - Progress bar utility."""
+import sys,argparse,json,time
+def bar(current,total,width=40,fill="█",empty="░"):
+    pct=current/total if total else 0
+    filled=int(width*pct)
+    return f"|{fill*filled}{empty*(width-filled)}| {pct*100:.1f}% ({current}/{total})"
+def main():
+    p=argparse.ArgumentParser(description="Progress bar")
+    p.add_argument("current",type=int);p.add_argument("total",type=int)
+    p.add_argument("--width",type=int,default=40)
+    p.add_argument("--animate",action="store_true")
+    p.add_argument("--json",action="store_true")
+    args=p.parse_args()
+    if args.animate:
+        for i in range(args.total+1):
+            print(f"\r{bar(i,args.total,args.width)}",end="",flush=True)
+            time.sleep(args.current/1000)
+        print()
+    elif args.json:
+        print(json.dumps({"current":args.current,"total":args.total,"percentage":round(args.current/args.total*100,1),"bar":bar(args.current,args.total,args.width)}))
+    else:
+        print(bar(args.current,args.total,args.width))
+if __name__=="__main__":main()

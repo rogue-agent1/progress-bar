@@ -1,6 +1,6 @@
-# progress_bar
+# progress-bar
 
-Progress bar library — terminal progress indicators
+Terminal progress bar renderer
 
 ## Usage
 
@@ -8,6 +8,7 @@ Progress bar library — terminal progress indicators
 python3 progress_bar.py --help
 ```
 
-## License
+## Features
 
-MIT
+- Zero dependencies (Python 3.8+)
+- Single file implementation
